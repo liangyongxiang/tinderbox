@@ -166,7 +166,7 @@ function UnpackStage3()  {
 
   for mirror in $gentoo_mirrors
   do
-    if wget --connect-timeout=10 --quiet $mirror/releases/amd64/autobuilds/latest-stage3.txt --output-document=$latest; then
+    if wget --connect-timeout=10 --quiet $mirror/releases/riscv/autobuilds/latest-stage3.txt --output-document=$latest; then
       echo
       date
       echo " using mirror $mirror"
@@ -181,7 +181,7 @@ function UnpackStage3()  {
   echo
   date
   echo " get stage3 file name prefix for profile $profile"
-  local prefix="stage3-amd64-"
+  local prefix="stage3-rv64_lp64d-"
   prefix+=$(sed -e 's,17\..,,' -e 's,/plasma,,' -e 's,/gnome,,' <<< $profile | tr -d '-')
   prefix=$(sed -e 's,nomultilib/hardened,hardened-nomultilib,' <<< $prefix)
   if [[ $profile =~ "/desktop" ]]; then
@@ -210,7 +210,7 @@ function UnpackStage3()  {
     echo
     date
     echo " downloading $stage3{,.asc} files ..."
-    local wgeturl="$mirror/releases/amd64/autobuilds"
+    local wgeturl="$mirror/releases/riscv/autobuilds"
     if ! wget --connect-timeout=10 --quiet --no-clobber $wgeturl/$stage3{,.asc} --directory-prefix=$tbhome/distfiles; then
       echo " failed"
       return 1
@@ -542,7 +542,7 @@ EOF
 function CreateSetupScript()  {
   if cat << EOF > ./var/tmp/tb/setup.sh; then
 #!/bin/bash
-# set -x
+set -x
 
 export LANG=C.utf8
 set -euf
@@ -634,7 +634,10 @@ function RunSetupScript() {
   date
   echo " run setup script ..."
 
-  echo '/var/tmp/tb/setup.sh &> /var/tmp/tb/setup.sh.log' > ./var/tmp/tb/setup_wrapper.sh
+  mkdir -p ~tinderbox/img/$name/usr/local/bin/
+  cp ~tinderbox/qemu-riscv64 ~tinderbox/img/$name/usr/local/bin/
+
+  echo '/var/tmp/tb/setup.sh |& tee /var/tmp/tb/setup.sh.log' > ./var/tmp/tb/setup_wrapper.sh
   if nice -n 1 $(dirname $0)/bwrap.sh -m $name -e ~tinderbox/img/$name/var/tmp/tb/setup_wrapper.sh; then
     echo -e " OK"
   else
