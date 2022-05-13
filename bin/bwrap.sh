@@ -131,6 +131,8 @@ function RunUnderBwrap() {
         --unshare-uts
         --hostname "$(cat ${mnt}/etc/conf.d/hostname)"
         --die-with-parent
+        --setenv http_proxy "http://127.0.0.1:8118"
+        --setenv https_proxy "http://127.0.0.1:8118"
         --setenv MAILTO "${MAILTO:-tinderbox}"
         --bind "$mnt"                             /
         --dev                                     /dev
